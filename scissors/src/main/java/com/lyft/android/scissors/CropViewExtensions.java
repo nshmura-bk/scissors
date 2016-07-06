@@ -120,6 +120,7 @@ class CropViewExtensions {
         private int width;
         private int height;
         private boolean originalSize;
+        private Bitmap originalBitmap;
 
         CropRequest(@NonNull CropView cropView) {
             Utils.checkNotNull(cropView, "cropView == null");
@@ -173,6 +174,16 @@ class CropViewExtensions {
         }
 
         /**
+         * Bitmap of cropping target.
+         *
+         * @return current request for chaining.
+         */
+        public CropRequest sourceBitmap(Bitmap bitmap) {
+            originalBitmap = bitmap;
+            return this;
+        }
+
+        /**
          * Asynchronously flush cropped bitmap into provided file, creating parent directory if required. This is performed in another
          * thread.
          *
@@ -180,8 +191,7 @@ class CropViewExtensions {
          * @return {@link Future} used to cancel or wait for this request.
          */
         public Future<Void> into(@NonNull File file) {
-            final Bitmap croppedBitmap = cropView.crop(calculateOutputScale());
-            return Utils.flushToFile(croppedBitmap, format, quality, file);
+            return Utils.flushToFile(crop(), format, quality, file);
         }
 
         /**
@@ -192,21 +202,29 @@ class CropViewExtensions {
          * @return {@link Future} used to cancel or wait for this request.
          */
         public Future<Void> into(@NonNull OutputStream outputStream, boolean closeWhenDone) {
-            final Bitmap croppedBitmap = cropView.crop(calculateOutputScale());
-            return Utils.flushToStream(croppedBitmap, format, quality, outputStream, closeWhenDone);
+            return Utils.flushToStream(crop(), format, quality, outputStream, closeWhenDone);
         }
 
-        private float calculateOutputScale() {
-            if (originalSize) {
-                Bitmap src = cropView.getImageBitmap();
-                if (src != null) {
-                    return cropView.calculateOutputScale(src.getWidth(), src.getHeight());
+        private Bitmap crop() {
+            Bitmap src;
+            if (originalBitmap != null) {
+                src = originalBitmap;
+            } else {
+                src = cropView.getImageBitmap();
+            }
+
+            float outputScale = 1.0f;
+            if (width > 0 && height > 0) {
+                outputScale = cropView.calculateOutputScale(width, height);
+
+            } else {
+                if (originalSize) {
+                    if (src != null) {
+                        outputScale = cropView.calculateOutputScale(src.getWidth(), src.getHeight());
+                    }
                 }
             }
-            if (width > 0 && height > 0) {
-                return cropView.calculateOutputScale(width, height);
-            }
-            return 1.0f;
+            return cropView.crop(outputScale, src);
         }
     }
 

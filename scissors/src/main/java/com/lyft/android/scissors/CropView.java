@@ -15,6 +15,9 @@
  */
 package com.lyft.android.scissors;
 
+import com.lyft.android.scissors.CropViewExtensions.CropRequest;
+import com.lyft.android.scissors.CropViewExtensions.LoadRequest;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
@@ -33,9 +36,6 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.ImageView;
-
-import com.lyft.android.scissors.CropViewExtensions.CropRequest;
-import com.lyft.android.scissors.CropViewExtensions.LoadRequest;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -213,23 +213,23 @@ public class CropView extends ImageView {
      */
     @Nullable
     public Bitmap crop() {
-        return crop(1.0f);
+        return crop(1.0f, bitmap);
     }
 
     /**
      * Performs synchronous image cropping based on configuration.
      *
      * @param outputScale multiplied with viewport size for calculating bitmap size.
+     * @param src Bitmap for cropping
      * @return A {@link Bitmap} cropped based on viewport and user panning and zooming or <code>null</code> if no {@link Bitmap} has been
      * provided.
      */
     @Nullable
-    public Bitmap crop(float outputScale) {
-        if (bitmap == null) {
+    public Bitmap crop(float outputScale, Bitmap src) {
+        if (src == null || bitmap == null) {
             return null;
         }
 
-        final Bitmap src = bitmap;
         final Bitmap.Config srcConfig = src.getConfig();
         final Bitmap.Config config = srcConfig == null ? Bitmap.Config.ARGB_8888 : srcConfig;
         final int viewportHeight = touchManager.getViewportHeight();
@@ -243,10 +243,15 @@ public class CropView extends ImageView {
         canvas.translate(-left * outputScale, -top * outputScale);
 
         Matrix transform = new Matrix();
+
+        final float scaleX = bitmap.getWidth() / (float)src.getWidth();
+        final float scaleY = bitmap.getHeight() / (float)src.getHeight();
+        transform.postScale(scaleX, scaleY);
+
         touchManager.applyPositioningAndScale(transform);
         transform.postScale(outputScale, outputScale);
 
-        canvas.drawBitmap(bitmap, transform, bitmapPaint);
+        canvas.drawBitmap(src, transform, bitmapPaint);
 
         return dst;
     }
