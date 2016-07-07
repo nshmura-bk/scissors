@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -36,4 +37,12 @@ dependencies {
     provided 'com.android.support:support-v4:' + rootProject.ext.supportVersion
 }
 
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+publish {
+    userOrg = "nshmura"
+    groupId = "com.nshmura"
+    artifactId = "scissors"
+    uploadName = "scissors"
+    publishVersion = "1.1.4"
+    desc = "forked fromhttps://github.com/lyft/scissors"
+    website = "https://github.com/nshmura/scissors"
+}
