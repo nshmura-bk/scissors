@@ -15,6 +15,9 @@
  */
 package com.lyft.android.scissorssample;
 
+import com.lyft.android.scissors.CropView;
+import com.squareup.leakcanary.RefWatcher;
+
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.animation.ObjectAnimator;
@@ -28,9 +31,6 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
-
-import com.lyft.android.scissors.CropView;
-import com.squareup.leakcanary.RefWatcher;
 
 import java.io.File;
 import java.util.List;
@@ -120,6 +120,7 @@ public class MainActivity extends Activity {
                 .format(JPEG)
                 //.originalSize()
                 //.outputSize(320, 320)
+                //.sourceBitmap(bitmap)
                 .into(croppedFile))
                 .subscribeOn(io())
                 .observeOn(mainThread());
